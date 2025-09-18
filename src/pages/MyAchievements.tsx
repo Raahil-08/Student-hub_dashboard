@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter } from "lucide-react";
 import { api, type Achievement } from "@/utils/api";
+import { AchievementDetailsModal } from "@/components/AchievementDetailsModal";
 
 export default function MyAchievements() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -14,6 +15,8 @@ export default function MyAchievements() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchAchievements = async () => {
@@ -65,6 +68,16 @@ export default function MyAchievements() {
   };
 
   const statusCounts = getStatusCounts();
+
+  const handleAchievementClick = (achievement: Achievement) => {
+    setSelectedAchievement(achievement);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedAchievement(null);
+  };
 
   if (loading) {
     return (
@@ -140,10 +153,20 @@ export default function MyAchievements() {
           </div>
         ) : (
           filteredAchievements.map((achievement) => (
-            <AchievementCard key={achievement.id} achievement={achievement} />
+            <AchievementCard 
+              key={achievement.id} 
+              achievement={achievement} 
+              onClick={handleAchievementClick}
+            />
           ))
         )}
       </div>
+
+      <AchievementDetailsModal
+        achievement={selectedAchievement}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

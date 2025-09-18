@@ -9,13 +9,15 @@ interface AchievementCardProps {
   showActions?: boolean;
   onApprove?: (id: string) => void;
   onReject?: (id: string) => void;
+  onClick?: (achievement: Achievement) => void;
 }
 
 export function AchievementCard({ 
   achievement, 
   showActions = false, 
   onApprove, 
-  onReject 
+  onReject,
+  onClick 
 }: AchievementCardProps) {
   const getStatusColor = (status: Achievement['status']) => {
     switch (status) {
@@ -31,7 +33,10 @@ export function AchievementCard({
   };
 
   return (
-    <div className="p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50 hover-scale">
+    <div 
+      className="p-4 rounded-lg bg-card/30 backdrop-blur-sm border border-border/50 hover-scale cursor-pointer transition-all hover:bg-card/50"
+      onClick={() => onClick?.(achievement)}
+    >
       <div className="flex items-start gap-3">
         <div className="text-primary">
           {getCategoryIcon(achievement.category)}

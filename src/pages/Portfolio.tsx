@@ -5,12 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, FileText, Calendar, Trophy } from "lucide-react";
 import { api, type Achievement } from "@/utils/api";
 import { BadgeIcon, getBadgeLabel, getBadgeColor, type BadgeType } from "@/components/BadgeIcon";
+import { AchievementDetailsModal } from "@/components/AchievementDetailsModal";
+import jsPDF from 'jspdf';
 
 export default function Portfolio() {
   const [approvedAchievements, setApprovedAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBadge, setSelectedBadge] = useState<BadgeType | null>(null);
   const [showInternships, setShowInternships] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const badges: BadgeType[] = ['diamond-international', 'platinum-national', 'gold-state', 'silver-district', 'bronze-intra-college'];
 
@@ -30,8 +34,105 @@ export default function Portfolio() {
   }, []);
 
   const handleDownloadPDF = () => {
-    // Stub for PDF download functionality
-    alert('PDF download feature coming soon!');
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    let yPosition = margin;
+
+    // Header
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    doc.text('Portfolio Resume', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Student Info
+    doc.setFontSize(18);
+    doc.text('Sarah Johnson', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 8;
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text('Computer Science Student', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 8;
+    
+    doc.text(`${approvedAchievements.length} Achievements | Updated ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    // Line separator
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 15;
+
+    // Achievements section
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('Achievements', margin, yPosition);
+    yPosition += 10;
+
+    // Group achievements by category
+    const achievementsByCategory = approvedAchievements.reduce((acc, achievement) => {
+      if (!acc[achievement.category]) {
+        acc[achievement.category] = [];
+      }
+      acc[achievement.category].push(achievement);
+      return acc;
+    }, {} as Record<string, Achievement[]>);
+
+    Object.entries(achievementsByCategory).forEach(([category, achievements]) => {
+      // Check if we need a new page
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      // Category header
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text(category, margin, yPosition);
+      yPosition += 8;
+
+      achievements.forEach((achievement) => {
+        // Check if we need a new page
+        if (yPosition > 260) {
+          doc.addPage();
+          yPosition = margin;
+        }
+
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text(`• ${achievement.title}`, margin + 5, yPosition);
+        yPosition += 6;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        
+        // Description (wrap text)
+        const descriptionLines = doc.splitTextToSize(achievement.description, pageWidth - margin * 2 - 10);
+        doc.text(descriptionLines, margin + 10, yPosition);
+        yPosition += descriptionLines.length * 4;
+
+        // Badge and date
+        doc.setFontSize(9);
+        doc.text(`Badge: ${getBadgeLabel(achievement.badge)}`, margin + 10, yPosition);
+        yPosition += 4;
+        doc.text(`Approved: ${achievement.approvedDate}`, margin + 10, yPosition);
+        yPosition += 8;
+      });
+
+      yPosition += 5;
+    });
+
+    // Download the PDF
+    doc.save('portfolio-resume.pdf');
+  };
+
+  const handleAchievementClick = (achievement: Achievement) => {
+    setSelectedAchievement(achievement);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedAchievement(null);
   };
 
   const getCategoryColor = (category: Achievement['category']) => {
@@ -215,7 +316,11 @@ export default function Portfolio() {
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAchievements.map((achievement) => (
-                <Card key={achievement.id} className="hover-scale">
+                <Card 
+                  key={achievement.id} 
+                  className="hover-scale cursor-pointer transition-all hover:bg-card/50"
+                  onClick={() => handleAchievementClick(achievement)}
+                >
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       <div className="flex items-start justify-between">
@@ -249,6 +354,12 @@ export default function Portfolio() {
           </div>
         );
       })()}
+
+      <AchievementDetailsModal
+        achievement={selectedAchievement}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

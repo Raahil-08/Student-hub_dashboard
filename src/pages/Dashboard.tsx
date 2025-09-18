@@ -5,6 +5,7 @@ import { PersonalCalendar } from "@/components/PersonalCalendar";
 import { Button } from "@/components/ui/button";
 import { Trophy, Clock, CheckCircle, XCircle, ArrowRight } from "lucide-react";
 import { api, type Achievement } from "@/utils/api";
+import { AchievementDetailsModal } from "@/components/AchievementDetailsModal";
 
 interface DashboardStats {
   total: number;
@@ -18,6 +19,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 🔑 New state for animated chart
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -62,6 +65,16 @@ export default function Dashboard() {
       return () => clearInterval(interval);
     }
   }, [stats?.portfolioProgress]);
+
+  const handleAchievementClick = (achievement: Achievement) => {
+    setSelectedAchievement(achievement);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedAchievement(null);
+  };
 
   if (loading) {
     return (
@@ -115,7 +128,11 @@ export default function Dashboard() {
           </div>
           <div className="space-y-4">
             {recentAchievements.map((achievement) => (
-              <AchievementCard key={achievement.id} achievement={achievement} />
+              <AchievementCard 
+                key={achievement.id} 
+                achievement={achievement} 
+                onClick={handleAchievementClick}
+              />
             ))}
           </div>
         </div>
@@ -123,6 +140,12 @@ export default function Dashboard() {
         {/* Personal Calendar */}
         <PersonalCalendar />
       </div>
+
+      <AchievementDetailsModal
+        achievement={selectedAchievement}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

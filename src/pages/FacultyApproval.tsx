@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Users } from "lucide-react";
 import { api, type Achievement } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
+import { AchievementDetailsModal } from "@/components/AchievementDetailsModal";
 
 export default function FacultyApproval() {
   const [submissions, setSubmissions] = useState<Achievement[]>([]);
@@ -15,6 +16,8 @@ export default function FacultyApproval() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Pending");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -106,6 +109,16 @@ export default function FacultyApproval() {
 
   const statusCounts = getStatusCounts();
 
+  const handleAchievementClick = (achievement: Achievement) => {
+    setSelectedAchievement(achievement);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedAchievement(null);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -180,10 +193,17 @@ export default function FacultyApproval() {
               showActions={true}
               onApprove={handleApprove}
               onReject={handleReject}
+              onClick={handleAchievementClick}
             />
           ))
         )}
       </div>
+
+      <AchievementDetailsModal
+        achievement={selectedAchievement}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
