@@ -1,5 +1,6 @@
 import { Bell, ChevronDown, Menu, X } from "lucide-react";
 import { ThemeAnimatedToggle } from "@/components/ThemeAnimatedToggle";
+import { NotificationPanel } from "@/components/NotificationPanel";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,9 +33,7 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <ThemeAnimatedToggle variant="ghost" size="md" />
           
-          <Button variant="ghost" size="sm">
-            <Bell className="w-4 h-4" />
-          </Button>
+          <NotificationPanel />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
